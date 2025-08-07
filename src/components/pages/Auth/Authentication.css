@@ -1,0 +1,463 @@
+/* Authentication.css */
+/* 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+ */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #2d5a27 0%, #4a7c59 50%, #68a085 100%);
+    min-height: 100vh;
+}
+
+.auth-container {
+    min-height: 87vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 10px;
+    /* padding: 20px; */
+    background: linear-gradient(135deg, #2d5a27 0%, #4a7c59 50%, #68a085 100%);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 1200px;
+    min-height: 700px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(45, 90, 39, 0.3);
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Welcome Section - Left Side */
+.welcome-section {
+    flex: 1;
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 50%, #58d68d 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 60px 40px;
+    min-height: 700px;
+}
+
+.welcome-content {
+    text-align: center;
+    z-index: 2;
+    position: relative;
+}
+
+.welcome-icon {
+    margin-bottom: 30px;
+    opacity: 0.9;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.95;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.welcome-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    opacity: 0.5;
+}
+
+/* Form Section - Right Side */
+.form-section {
+    flex: 1;
+    padding: 30px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #fafafa;
+    min-height: 700px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.form-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2d5a27;
+    margin-bottom: 12px;
+}
+
+.form-subtitle {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.form-content {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Form Row for side-by-side inputs */
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.form-group.half-width {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2d5a27;
+    font-size: 0.95rem;
+}
+
+.input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-input {
+    width: 100%;
+    padding: 15px 45px 15px 45px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: #333;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-input.error {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.form-input.verified {
+    border-color: #27ae60;
+    padding-right: 80px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    color: #27ae60;
+    z-index: 1;
+}
+
+.verified-icon {
+    position: absolute;
+    right: 45px;
+    color: #27ae60;
+    z-index: 1;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #27ae60;
+}
+
+.error-text {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Verification Section */
+.verification-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.verify-button {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.verify-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #219a52, #27ae60);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+.verify-button:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+}
+
+.verification-status {
+    color: #27ae60;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Form Options */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #27ae60;
+}
+
+.checkbox-text {
+    user-select: none;
+}
+
+.forgot-link {
+    color: #27ae60;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.forgot-link:hover {
+    color: #219a52;
+    text-decoration: underline;
+}
+
+/* Submit Button */
+.submit-button {
+    width: 100%;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.submit-button:hover {
+    background: linear-gradient(135deg, #219a52, #27ae60);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+}
+
+.submit-button:active {
+    transform: translateY(0);
+}
+
+/* Switch Form */
+.switch-form {
+    text-align: center;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.switch-button {
+    background: none;
+    border: none;
+    color: #27ae60;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+}
+
+.switch-button:hover {
+    color: #219a52;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-card {
+        flex-direction: column;
+        max-width: 500px;
+        min-height: auto;
+    }
+
+    .welcome-section {
+        min-height: 300px;
+        padding: 40px 30px;
+    }
+
+    .welcome-title {
+        font-size: 2rem;
+    }
+
+    /* .form-section {
+        padding: 40px 30px;
+        min-height: auto;
+    } */
+
+    .form-title {
+        font-size: 1.8rem;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-group.half-width {
+        margin-bottom: 25px;
+    }
+
+    .verification-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 10px;
+    }
+
+    .welcome-section {
+        padding: 30px 20px;
+    }
+
+    /* .form-section {
+        padding: 30px 20px;
+    } */
+
+    .form-input {
+        padding: 12px 40px 12px 40px;
+        font-size: 0.95rem;
+    }
+
+    .submit-button {
+        padding: 14px;
+        font-size: 1rem;
+    }
+}
+
+/* Large screens - ensure horizontal scaling */
+@media (min-width: 1400px) {
+    .auth-card {
+        max-width: 1400px;
+    }
+
+    .welcome-section {
+        padding: 80px 60px;
+    }
+
+    /* .form-section {
+        padding: 80px 70px;
+    } */
+
+    .form-content {
+        max-width: 450px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .auth-card {
+        max-width: 1600px;
+    }
+
+    .welcome-section {
+        padding: 100px 80px;
+    }
+
+    /* .form-section {
+        padding: 100px 90px;
+    } */
+
+    .form-content {
+        max-width: 500px;
+    }
+}
+
+/* Animation for smooth transitions */
+.auth-card,
+.form-input,
+.submit-button,
+.verify-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus states for accessibility */
+.form-input:focus,
+.submit-button:focus,
+.verify-button:focus,
+.switch-button:focus {
+    outline: 2px solid #27ae60;
+    outline-offset: 2px;
+}

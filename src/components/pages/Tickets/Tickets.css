@@ -1,0 +1,570 @@
+.flight-tickets-main-container {
+    padding: 2rem;
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c8 100%);
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+}
+
+.flight-tickets-page-title {
+    color: #2d5a2d;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(45, 90, 45, 0.1);
+}
+
+.flight-tickets-main-content {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(45, 90, 45, 0.1);
+    border: 4px solid #c8e6c8;
+    border-top: 4px solid #4a7c59;
+}
+
+.flight-tickets-content-header {
+    margin-bottom: 2rem;
+}
+
+.flight-tickets-section-heading {
+    color: #2d5a2d;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+}
+
+/* Loading and Error States */
+.flight-tickets-loading-wrapper,
+.flight-tickets-error-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(45, 90, 45, 0.1);
+    border: 4px solid #c8e6c8;
+    border-top: 4px solid #4a7c59;
+    text-align: center;
+    color: #2d5a2d;
+}
+
+.flight-tickets-loading-wrapper p,
+.flight-tickets-error-wrapper p {
+    margin: 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.flight-tickets-retry-button {
+    background: linear-gradient(135deg, #4a7c59 0%, #2d5a2d 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    color: white;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.flight-tickets-retry-button:hover {
+    background: linear-gradient(135deg, #2d5a2d 0%, #1a3d1a 100%);
+    transform: translateY(-1px);
+}
+
+/* Filters Section */
+.flight-tickets-filters-wrapper {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.flight-tickets-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 200px;
+}
+
+.flight-tickets-filter-label {
+    font-weight: 600;
+    color: #4a7c59;
+    font-size: 0.9rem;
+}
+
+.flight-tickets-booking-dropdown,
+.flight-tickets-status-dropdown {
+    border: 2px solid #e8f5e8;
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-weight: 500;
+    color: #2d5a2d;
+}
+
+.flight-tickets-booking-dropdown:focus,
+.flight-tickets-status-dropdown:focus {
+    border-color: #4a7c59;
+    box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+}
+
+/* Stats Section */
+.flight-tickets-statistics-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.flight-tickets-stat-item {
+    background: linear-gradient(135deg, #4a7c59 0%, #2d5a2d 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 120px;
+    flex: 1;
+    box-shadow: 0 4px 12px rgba(45, 90, 45, 0.2);
+}
+
+.flight-tickets-stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.flight-tickets-stat-description {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+/* Tickets List */
+.flight-tickets-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.flight-ticket-individual-card {
+    background: #f8fdf8;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px solid #e8f5e8;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.flight-ticket-individual-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #4a7c59 0%, #2d5a2d 100%);
+}
+
+.flight-ticket-individual-card:hover {
+    border-color: #c8e6c8;
+    box-shadow: 0 8px 25px rgba(45, 90, 45, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Ticket Header */
+.flight-ticket-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e8f5e8;
+}
+
+.flight-ticket-id-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.flight-ticket-id-display {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2d5a2d;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.flight-ticket-id-display i {
+    color: #4a7c59;
+    font-size: 1.1rem;
+}
+
+.flight-ticket-booking-link {
+    color: #666;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.flight-ticket-booking-link i {
+    color: #4a7c59;
+}
+
+.flight-ticket-status-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.flight-ticket-status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.flight-ticket-status-badge.issued {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.flight-ticket-status-badge.pending {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.flight-ticket-status-badge.cancelled {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Ticket Body */
+.flight-ticket-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Flight Info */
+.flight-ticket-flight-details {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e8f5e8;
+}
+
+.flight-ticket-flight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.flight-ticket-airline-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.flight-ticket-airline-info i {
+    color: #4a7c59;
+    font-size: 1.1rem;
+}
+
+.flight-ticket-flight-number {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #2d5a2d;
+}
+
+.flight-ticket-airline-name {
+    color: #666;
+    font-weight: 500;
+}
+
+.flight-ticket-route-display {
+    font-weight: 600;
+    color: #4a7c59;
+    font-size: 1.1rem;
+}
+
+.flight-ticket-times-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fdf8;
+    padding: 1rem;
+    border-radius: 6px;
+}
+
+.flight-ticket-time-block {
+    text-align: center;
+    flex: 1;
+}
+
+.flight-ticket-time-label {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.flight-ticket-date-value {
+    font-weight: 600;
+    color: #2d5a2d;
+    margin-bottom: 0.25rem;
+}
+
+.flight-ticket-time-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #4a7c59;
+}
+
+.flight-ticket-duration-arrow {
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.flight-ticket-duration-arrow i {
+    color: #4a7c59;
+    font-size: 1.5rem;
+}
+
+/* Passenger and Booking Info */
+.flight-ticket-passenger-booking-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.flight-ticket-passenger-section,
+.flight-ticket-booking-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e8f5e8;
+}
+
+.flight-ticket-passenger-section h4,
+.flight-ticket-booking-section h4 {
+    color: #2d5a2d;
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e8f5e8;
+}
+
+.flight-ticket-passenger-name,
+.flight-ticket-booking-customer {
+    font-weight: 600;
+    color: #2d5a2d;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.flight-ticket-passenger-name i,
+.flight-ticket-booking-customer i {
+    color: #4a7c59;
+}
+
+.flight-ticket-passenger-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.flight-ticket-passenger-metadata span {
+    background: #e8f5e8;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #2d5a2d;
+    display: inline-block;
+    width: fit-content;
+}
+
+.flight-ticket-booking-package {
+    color: #666;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.flight-ticket-booking-amount {
+    font-weight: 700;
+    color: #4a7c59;
+    font-size: 1.1rem;
+}
+
+/* Ticket Actions */
+.flight-ticket-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e8f5e8;
+}
+
+.flight-ticket-booking-id-display {
+    color: #666;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.flight-ticket-booking-id-display i {
+    color: #4a7c59;
+}
+
+.flight-ticket-action-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.flight-ticket-view-button,
+.flight-ticket-download-button {
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.flight-ticket-view-button {
+    background: linear-gradient(135deg, #4a7c59 0%, #2d5a2d 100%);
+    color: white;
+}
+
+.flight-ticket-view-button:hover {
+    background: linear-gradient(135deg, #2d5a2d 0%, #1a3d1a 100%);
+    transform: translateY(-1px);
+}
+
+.flight-ticket-download-button {
+    background: linear-gradient(135deg, #4a7c59 0%, #2d5a2d 100%);
+    color: white;
+}
+
+.flight-ticket-download-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2d5a2d 0%, #1a3d1a 100%);
+    transform: translateY(-1px);
+}
+
+.flight-ticket-download-button:disabled {
+    background: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* No Tickets */
+.flight-tickets-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+}
+
+.flight-tickets-empty-icon {
+    margin-bottom: 1rem;
+}
+
+.flight-tickets-empty-icon i {
+    font-size: 3rem;
+    color: #4a7c59;
+    opacity: 0.5;
+}
+
+.flight-tickets-empty-message h3 {
+    color: #2d5a2d;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.flight-tickets-empty-message p {
+    margin: 0;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .flight-ticket-passenger-booking-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .flight-ticket-times-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .flight-ticket-duration-arrow {
+        transform: rotate(90deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .flight-tickets-main-container {
+        padding: 1rem;
+    }
+
+    .flight-tickets-page-title {
+        font-size: 2rem;
+    }
+
+    .flight-tickets-main-content {
+        padding: 1rem;
+    }
+
+    .flight-tickets-filters-wrapper {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .flight-tickets-statistics-row {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+
+    .flight-ticket-card-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .flight-ticket-flight-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .flight-ticket-actions-row {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .flight-ticket-action-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .flight-ticket-passenger-metadata {
+        flex-direction: column;
+    }
+}

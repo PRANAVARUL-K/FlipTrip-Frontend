@@ -1,0 +1,127 @@
+.profile-container {
+    padding: 1rem;
+}
+
+.profile-title {
+    font-size: 1.875rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--text-900);
+}
+
+.profile-content {
+    background: var(--surface-0);
+    box-shadow: var(--shadow-2);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+}
+
+.profile-avatar-section {
+    display: flex;
+    justify-content: center;
+}
+
+.avatar-container {
+    text-align: center;
+}
+
+.profile-avatar {
+    margin-bottom: 0.75rem;
+}
+
+.profile-name {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-900);
+    font-size: 1.25rem;
+}
+
+.profile-position {
+    color: var(--text-500);
+    margin: 0;
+}
+
+.profile-form-section {
+    width: 100%;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    grid-template-areas:
+        "col1 col2"
+        "actions actions";
+}
+
+.form-column:first-child {
+    grid-area: col1;
+}
+
+.form-column:last-child {
+    grid-area: col2;
+}
+
+.form-actions {
+    grid-area: actions;
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.form-field {
+    margin-bottom: 1rem;
+}
+
+.field-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-900);
+}
+
+.field-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--surface-300);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    color: var(--text-900);
+    background: var(--surface-0);
+}
+
+.field-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
+}
+
+.update-btn,
+.password-btn {
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "col1"
+            "col2"
+            "actions";
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+}
