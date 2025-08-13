@@ -262,6 +262,7 @@ const FlightSelection = ({
                         <div className="flight-route">
                           <div className="airport-info">
                             <div className="airport-code">{flight.source_airport}</div>
+                            <div className="city-name">{flight.source_city}</div>
                             <div className="flight-time">{departure.time}</div>
                             <div className="flight-date">{departure.date}</div>
                           </div>
@@ -275,6 +276,7 @@ const FlightSelection = ({
 
                           <div className="airport-info">
                             <div className="airport-code">{flight.destination_airport}</div>
+                            <div className="city-name">{flight.destination_city}</div>
                             <div className="flight-time">{arrival.time}</div>
                             <div className="flight-date">{arrival.date}</div>
                           </div>
@@ -293,7 +295,7 @@ const FlightSelection = ({
 
                       {flightIndex < flightOption.flights.length - 1 && (
                         <div className="layover-info">
-                          <div className="layover-text">Layover in {flight.destination_airport}</div>
+                          <div className="layover-text">Layover in {flight.destination_city} ({flight.destination_airport})</div>
                         </div>
                       )}
                     </div>

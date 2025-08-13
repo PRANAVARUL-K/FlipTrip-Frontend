@@ -266,6 +266,7 @@ const PackageExplorer = ({ searchParams, packageResults }) => {
   const [itineraryLoading, setItineraryLoading] = useState(false);
   const [endFlightsLoading, setEndFlightsLoading] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [srcToFirstArrivalTime, setSrcToFirstArrivalTime] = useState(null);
   const [currentView, setCurrentView] = useState('packages'); // 'packages', 'details', 'flights', 'itinerary', 'endFlights', 'passengers'
   const backendUrl = process.env.REACT_APP_TOUR_PACKAGE_BACKEND_URL;
 
@@ -331,6 +332,7 @@ const PackageExplorer = ({ searchParams, packageResults }) => {
     // Extract last arrival_time and format it to "YYYY-MM-DD HH:MM"
     const lastArrivalRaw = flight.flights[flight.flights.length - 1].arrival_time;
     const lastArrivalFormatted = lastArrivalRaw.slice(0, 16); // removes seconds
+    setSrcToFirstArrivalTime(lastArrivalFormatted);
 
     const payload = {
       head_count: searchParams.headCount,
@@ -463,68 +465,85 @@ const PackageExplorer = ({ searchParams, packageResults }) => {
     return allFlights;
   };
 
+  function formatDateTime(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  }
+
   const handleCreateBooking = async (passengers) => {
-    
     try {
       setBookingLoading(true);
-      const consolidatedFlights = consolidateAllFlights();
-      console.log('Consolidated Flights:', consolidatedFlights);
-      console.log("Booking Date: ",searchParams.date)
 
+      const consolidatedFlights = consolidateAllFlights();
+      console.log("Consolidated Flight: ",consolidatedFlights);
       const formattedDate = searchParams?.date
-        ? new Date(searchParams?.date).toLocaleDateString('en-CA') // YYYY-MM-DD in local time
+        ? new Date(searchParams?.date).toLocaleDateString('en-CA') // YYYY-MM-DD format
         : null;
+        console.log("Booking Date: ",formattedDate)
+
+      const sortedFlights = [...consolidatedFlights].sort(
+        (a, b) => new Date(a.departure_time) - new Date(b.departure_time)
+      );
 
       const bookingPayload = {
         package_id: selectedPackage?.package_id,
         head_count: searchParams?.headCount || 1,
         passengers: passengers,
-        booking_date: formattedDate,
+        //booking_date: formattedDate,
+        booking_date: formatDateTime(sortedFlights[0].departure_time),
+        end_date: formatDateTime(sortedFlights[sortedFlights.length - 1].arrival_time),
+        src_to_first_arrival_time: srcToFirstArrivalTime,
         flights: consolidatedFlights,
         user_id: parseInt(getCookie('userId')),
-        flight_total : consolidatedFlights.reduce((sum, flight) => sum + flight.base_price, 0),
+        flight_total: consolidatedFlights.reduce((sum, flight) => sum + flight.base_price, 0),
       };
-
-      console.log('Creating booking with payload:', bookingPayload);
+      console.log("Payload for Create_booking's API: ", bookingPayload);
 
       const response = await fetch(`${backendUrl}/trip_package/create_booking`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bookingPayload)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookingPayload),
       });
 
       if (response.ok) {
         const bookingResult = await response.json();
         console.log('Booking created successfully:', bookingResult);
-        
+
+        // Now start payment redirect
+        //handlePaymentGateway();
+
         return {
           success: true,
           data: bookingResult,
           consolidatedFlights,
-          bookingPayload
+          bookingPayload,
         };
       } else {
         const errorData = await response.json();
         console.error('Booking failed:', errorData);
-        
+
         return {
           success: false,
-          error: errorData.message || 'Booking failed. Please try again.'
+          error: errorData.message || 'Booking failed. Please try again.',
         };
       }
     } catch (error) {
       console.error('Error creating booking:', error);
-      
+
       return {
         success: false,
-        error: 'An error occurred while creating your booking. Please try again.'
+        error: 'An error occurred while creating your booking. Please try again.',
       };
     } finally {
       setBookingLoading(false);
     }
   };
+
 
   const handlePassengerSubmit = async (passengersData) => {
     // If passengersData contains booking result (from updated PassengerDetails)
@@ -556,6 +575,25 @@ const PackageExplorer = ({ searchParams, packageResults }) => {
     } else {
       alert(bookingResult.error);
     }
+  };
+  const handlePaymentGateway = (e) => {
+    //e.preventDefault();
+    let amount = 1000;
+
+    if (!amount || isNaN(amount)) {
+      return alert('Enter a valid amount');
+    }
+
+    const payload = {
+      email: 'thabitha@gmail.com',
+      code: 'thabitha@paygate',
+      amount: parseFloat(amount)
+    };
+
+    const encoded = encodeURIComponent(btoa(JSON.stringify(payload))); // Base64 + URI encode
+    const returnUrl = `${window.location.origin}/payment-result`;
+
+    window.location.href = `http://172.22.150.21:3001/payment/${encoded}?returnUrl=${encodeURIComponent(returnUrl)}`;
   };
 
   const handleBack = () => {
