@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Plane, Calendar, Users, CreditCard } from 'lucide-react';
-
-// Import the actual getCookie utility
+import { Download, Plane, Calendar, Users, CreditCard, X, AlertTriangle, RefreshCw} from 'lucide-react';
+import ItineraryViewBookings from './ItineraryViewBookings';
+import FlightSelectionBooking from './FlightSelectionsBooking';
+import './Bookings.css'
 import { getCookie } from '../../../utils/SessionUtils';
+
+// Mock getCookie utility (replace with actual implementation)
+// const getCookie = (name) => {
+//   return '2'; // Mock user ID for demo
+// };
 
 // CSS Styles Component
 const BookingStyles = () => (
@@ -53,12 +59,23 @@ const BookingStyles = () => (
       margin-bottom: 24px;
       overflow: hidden;
       border: 1px solid #e5e7eb;
+      transition: all 0.2s;
+    }
+
+    .tbm-booking-card.cancelled {
+      border-color: #ef4444;
+      box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
     }
 
     .tbm-booking-header {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: white;
       padding: 20px;
+      position: relative;
+    }
+
+    .tbm-booking-header.cancelled {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     }
 
     .tbm-booking-info {
@@ -82,6 +99,10 @@ const BookingStyles = () => (
       font-size: 0.875rem;
       font-weight: 500;
       text-transform: capitalize;
+    }
+
+    .tbm-booking-status.cancelled {
+      background: #dc2626;
     }
 
     .tbm-booking-meta {
@@ -173,6 +194,26 @@ const BookingStyles = () => (
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
+    .tbm-cancel-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 8px;
+    }
+
+    .tbm-cancel-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
     .tbm-tickets-count {
       background: #d1fae5;
       color: #059669;
@@ -180,6 +221,112 @@ const BookingStyles = () => (
       border-radius: 4px;
       font-size: 0.875rem;
       font-weight: 500;
+    }
+
+    .tbm-action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Confirmation Modal Styles */
+    .confirmation-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .confirmation-modal {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    .confirmation-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .confirmation-icon {
+      width: 24px;
+      height: 24px;
+      color: #ef4444;
+    }
+
+    .confirmation-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0;
+    }
+
+    .confirmation-message {
+      color: #6b7280;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .confirmation-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .confirm-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .confirm-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .cancel-btn {
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cancel-btn:hover {
+      background: #e5e7eb;
+    }
+
+    .cancelled-badge {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     @media (max-width: 768px) {
@@ -199,11 +346,53 @@ const BookingStyles = () => (
       .tbm-passengers-grid {
         grid-template-columns: 1fr;
       }
+
+      .tbm-tickets-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .tbm-action-buttons {
+        width: 100%;
+      }
+
+      .tbm-view-tickets-btn,
+      .tbm-cancel-btn {
+        flex: 1;
+      }
     }
   `}</style>
 );
 
-// Flight Ticket Details Component
+// Confirmation Modal Component
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, booking }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="confirmation-overlay">
+      <div className="confirmation-modal">
+        <div className="confirmation-header">
+          <AlertTriangle className="confirmation-icon" />
+          <h3 className="confirmation-title">Cancel Booking</h3>
+        </div>
+        <p className="confirmation-message">
+          Are you sure you want to cancel booking #{booking?.booking_id}? 
+          This action cannot be undone and may result in cancellation charges.
+        </p>
+        <div className="confirmation-buttons">
+          <button className="cancel-btn" onClick={onClose}>
+            Keep Booking
+          </button>
+          <button className="confirm-btn" onClick={onConfirm}>
+            Cancel Booking
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const FlightTicketDetails = ({ tickets, onClose }) => {
   const [ticketDetails, setTicketDetails] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -585,11 +774,6 @@ const FlightTicketDetails = ({ tickets, onClose }) => {
             </div>
           </div>
           
-          <div class="booking-footer">
-            <div class="booking-ref">Booking Reference: ${flight.booking_id}</div>
-            <div class="qr-placeholder">QR CODE</div>
-            <div class="boarding-note">Please arrive at the airport at least 2 hours before departure</div>
-          </div>
         </div>
       </body>
       </html>
@@ -985,14 +1169,36 @@ const FlightTicketDetails = ({ tickets, onClose }) => {
   );
 };
 
-// Main Booking List Component
 const TripBookingsList = () => {
+  // Sample data based on the provided JSON
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedTickets, setSelectedTickets] = useState(null);
-  const backendUrl = process.env.REACT_APP_TOUR_PACKAGE_BACKEND_URL;
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    booking: null
+  });
 
+  // New states for alter plan functionality
+  const [showItinerary, setShowItinerary] = useState(false);
+  const [flightPlan, setFlightPlan] = useState([]);
+  const [spotSchedule, setSpotSchedule] = useState([]);
+  const [endFlightOptions, setEndFlightOptions] = useState([]);
+  const [itineraryLoading, setItineraryLoading] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState(null);
+  
+  // States for flight selection and consolidated data
+  const [showEndFlightSelection, setShowEndFlightSelection] = useState(false);
+  const [consolidatedFlights, setConsolidatedFlights] = useState([]);
+  const [selectedFlightPlan, setSelectedFlightPlan] = useState([]);
+  const [bookingPassengers, setBookingPassengers] = useState([]);
+  const [headCount, setHeadCount] = useState(0);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
+
+  const backendUrl = process.env.REACT_APP_TOUR_PACKAGE_BACKEND_URL;
+  
   useEffect(() => {
     fetchBookings();
   }, []);
@@ -1001,6 +1207,7 @@ const TripBookingsList = () => {
     try {
       setLoading(true);
       const userId = parseInt(getCookie('userId'));
+      console.log("fetched userID: ",userId);
       
       if (!userId) {
         throw new Error('User ID not found in cookies');
@@ -1044,6 +1251,348 @@ const TripBookingsList = () => {
     }).format(parseFloat(amount));
   };
 
+  const handleCancelBooking = (booking) => {
+    setConfirmationModal({
+      isOpen: true,
+      booking: booking
+    });
+  };
+
+  const confirmCancellation = async () => {
+    const { booking } = confirmationModal;
+    
+    try {
+      setLoading(true);
+      
+      const response = await fetch(`${backendUrl}/trip_package/cancel_booking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          booking_id: booking.booking_id
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Update the booking status in local state
+      setBookings(prevBookings => 
+        prevBookings.map(b => 
+          b.booking_id === booking.booking_id 
+            ? { ...b, status: 'cancelled' }
+            : b
+        )
+      );
+
+      setConfirmationModal({ isOpen: false, booking: null });
+      
+    } catch (err) {
+      console.error('Error cancelling booking:', err);
+      setError(`Failed to cancel booking: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeConfirmationModal = () => {
+    setConfirmationModal({ isOpen: false, booking: null });
+  };
+
+  // Check if booking has any cancelled flight tickets
+  const hasCancelledFlights = (booking) => {
+    return booking.tickets && booking.tickets.some(ticket => ticket.flight_status === 'cancelled');
+  };
+
+  // Handle alter plan functionality
+  const handleAlterPlan = async (booking) => {
+    try {
+      setCurrentBooking(booking);
+      setItineraryLoading(true);
+      setShowItinerary(true);
+
+      // Extract package start date and format it to "YYYY-MM-DD HH:MM"
+      const packageStartDate = new Date(booking.package_startdate);
+      const formattedStartDate = packageStartDate.toISOString().slice(0, 16);
+
+      const payload = {
+        head_count: booking.passengers.length,
+        package_id: booking.package.package_id,
+        src_to_first_arrival_time: formattedStartDate,
+        source: booking.source_place,
+      };
+
+      const response = await fetch(`${backendUrl}/trip_package/generate_flight_plan`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Flight Plan Generated:", data);
+      
+      // Set the flight plan and spot schedule data
+      setFlightPlan(data.flight_plan || []);
+      setSpotSchedule(data.spot_schedule || []);
+
+      // Call end flight options API after getting the flight plan
+      await handleEndFlightOptions(data, booking);
+      
+    } catch (error) {
+      console.error("Failed to generate flight plan:", error);
+      setFlightPlan([]);
+      setSpotSchedule([]);
+      setEndFlightOptions([]);
+      setError(`Failed to generate flight plan: ${error.message}`);
+    } finally {
+      setItineraryLoading(false);
+    }
+  };
+
+  // Handle end flight options API call
+  const handleEndFlightOptions = async (flightPlanData, booking) => {
+    try {
+      if (!flightPlanData.spot_schedule || flightPlanData.spot_schedule.length === 0) {
+        console.log("No spot schedule available for end flight options");
+        return;
+      }
+
+      // Find the last spot from the spot schedule
+      const lastCity = flightPlanData.spot_schedule[flightPlanData.spot_schedule.length - 1];
+      const lastSpot = lastCity.spots[lastCity.spots.length - 1];
+
+      // Format the end time to "YYYY-MM-DD HH:MM"
+      const endDateTime = new Date(lastSpot.end_time);
+      const formattedEndDateTime = endDateTime.toISOString().slice(0, 16).replace('T', ' ');
+
+      const endFlightPayload = {
+        spot_id: lastSpot.spot_id,
+        package_id: booking.package.package_id,
+        head_count: booking.passengers.length,
+        package_date_end_date_time: formattedEndDateTime,
+        customer_destination: booking.source_place
+      };
+
+      console.log("End Flight Options Payload:", endFlightPayload);
+
+      const endFlightResponse = await fetch(`${backendUrl}/trip_package/end_flight_options`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(endFlightPayload),
+      });
+
+      if (!endFlightResponse.ok) {
+        throw new Error(`HTTP error! status: ${endFlightResponse.status}`);
+      }
+
+      const endFlightData = await endFlightResponse.json();
+      console.log("End Flight Options Generated:", endFlightData);
+      
+      // Set the end flight options data
+      setEndFlightOptions(endFlightData || []);
+      
+    } catch (error) {
+      console.error("Failed to fetch end flight options:", error);
+      setEndFlightOptions([]);
+      // Don't set error here as it's a secondary call
+    }
+  };
+
+  const handleBackFromItinerary = () => {
+    setShowItinerary(false);
+    setCurrentBooking(null);
+    setFlightPlan([]);
+    setSpotSchedule([]);
+    setEndFlightOptions([]);
+  };
+
+  const handleBackFromFlightSelection = () => {
+    setShowEndFlightSelection(false);
+    setShowItinerary(true);
+  };
+
+  const handleEndFlightSelect = (selectedEndFlight) => {
+    // Add the selected end flight to consolidated flights
+    const endFlightDetails = {
+      flight_id: selectedEndFlight.flights[0].flight_id, // Assuming single flight for return
+      airline_name: selectedEndFlight.flights[0].airline_name,
+      flight_number: selectedEndFlight.flights[0].flight_number,
+      source_city: selectedEndFlight.flights[0].source_city,
+      destination_city: selectedEndFlight.flights[0].destination_city,
+      source_airport: selectedEndFlight.flights[0].source_airport,
+      destination_airport: selectedEndFlight.flights[0].destination_airport,
+      departure_time: selectedEndFlight.flights[0].departure_time,
+      arrival_time: selectedEndFlight.flights[0].arrival_time,
+      duration_minutes: selectedEndFlight.flights[0].duration_minutes,
+      base_price: selectedEndFlight.flights[0].base_price,
+      available_seats: selectedEndFlight.flights[0].available_seats,
+      seats_required: headCount
+    };
+
+    // Add all flights from the selected end flight option (in case of connecting flights)
+    const allEndFlights = selectedEndFlight.flights.map(flight => ({
+      flight_id: flight.flight_id,
+      airline_name: flight.airline_name,
+      flight_number: flight.flight_number,
+      source_city: flight.source_city,
+      destination_city: flight.destination_city,
+      source_airport: flight.source_airport,
+      destination_airport: flight.destination_airport,
+      departure_time: flight.departure_time,
+      arrival_time: flight.arrival_time,
+      duration_minutes: flight.duration_minutes,
+      base_price: flight.base_price,
+      available_seats: flight.available_seats,
+      seats_required: headCount
+    }));
+
+    // Update consolidated flights with end flights
+    setConsolidatedFlights(prev => [...prev, ...allEndFlights]);
+    
+    console.log("Selected End Flight:", selectedEndFlight);
+    console.log("Updated Consolidated Flights:", [...consolidatedFlights, ...allEndFlights]);
+    
+    // Now call the update booking API
+    handleUpdateBooking([...consolidatedFlights, ...allEndFlights]);
+  };
+
+  const handleUpdateBooking = async (allFlights) => {
+    try {
+      setLoading(true);
+
+      const updatePayload = {
+        booking_id: selectedBookingId,
+        head_count: headCount,
+        passengers: bookingPassengers.map(passenger => ({
+          name: passenger.full_name,
+          age: passenger.age,
+          gender: passenger.gender,
+          passport_no: passenger.passport_number
+        })),
+        flights: allFlights
+      };
+
+      console.log("Update Booking Payload:", updatePayload);
+
+      const response = await fetch(`${backendUrl}/trip_package/update_booking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatePayload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Update Booking Response:", result);
+
+      // Show success message and refresh bookings
+      alert("Trip plan updated successfully!");
+      await fetchBookings(); // Refresh the bookings list
+      
+      // Reset all states
+      setShowEndFlightSelection(false);
+      setConsolidatedFlights([]);
+      setSelectedFlightPlan([]);
+      setBookingPassengers([]);
+      setHeadCount(0);
+      setSelectedBookingId(null);
+      setCurrentBooking(null);
+
+    } catch (error) {
+      console.error("Failed to update booking:", error);
+      setError(`Failed to update booking: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmItinerary = () => {
+    // Store all the consolidated flight details
+    const allFlights = [];
+    
+    // Add inter-city flights from flight plan
+    if (flightPlan && flightPlan.length > 0) {
+      flightPlan.forEach(plan => {
+        allFlights.push({
+          flight_id: plan.flight.flight_id,
+          airline_name: plan.flight.airline_name,
+          flight_number: plan.flight.flight_number,
+          source_city: plan.flight.source_city,
+          destination_city: plan.flight.destination_city,
+          source_airport: plan.flight.source_airport,
+          destination_airport: plan.flight.destination_airport,
+          departure_time: plan.flight.departure_time,
+          arrival_time: plan.flight.arrival_time,
+          duration_minutes: plan.flight.duration_minutes,
+          base_price: plan.flight.base_price,
+          available_seats: plan.flight.available_seats,
+          seats_required: plan.head_count || currentBooking?.passengers.length || 1
+        });
+      });
+    }
+    
+    // Store consolidated flight data
+    setConsolidatedFlights(allFlights);
+    setSelectedFlightPlan(flightPlan);
+    setBookingPassengers(currentBooking?.passengers || []);
+    setHeadCount(currentBooking?.passengers.length || 1);
+    setSelectedBookingId(currentBooking?.booking_id);
+    
+    console.log("Consolidated Flights:", allFlights);
+    console.log("Booking Details:", {
+      bookingId: currentBooking?.booking_id,
+      passengers: currentBooking?.passengers,
+      headCount: currentBooking?.passengers.length
+    });
+    
+    // Show end flight selection with end flight options
+    setShowItinerary(false);
+    setShowEndFlightSelection(true);
+  };
+
+  // If showing end flight selection, render the FlightSelection component
+  if (showEndFlightSelection) {
+    return (
+      <FlightSelectionBooking
+        flights={endFlightOptions}
+        onFlightSelect={handleEndFlightSelect}
+        onBack={handleBackFromFlightSelection}
+        loading={loading}
+        title="Select Return Flight"
+        subtitle="Choose your preferred return flight to complete your trip plan"
+      />
+    );
+  }
+
+  // If showing itinerary, render the ItineraryView component
+  if (showItinerary) {
+    return (
+      <ItineraryViewBookings
+        flightPlan={flightPlan}
+        spotSchedule={spotSchedule}
+        endFlightOptions={endFlightOptions}
+        onBack={handleBackFromItinerary}
+        onConfirm={handleConfirmItinerary}
+        loading={itineraryLoading}
+        booking={currentBooking}
+      />
+    );
+  }
+
   if (loading) {
     return (
       <div className="tbm-container">
@@ -1071,71 +1620,100 @@ const TripBookingsList = () => {
         <p>Manage and view your flight bookings</p>
       </div>
 
-      {bookings.map((booking) => (
-        <div key={booking.booking_id} className="tbm-booking-card">
-          <div className="tbm-booking-header">
-            <div className="tbm-booking-info">
-              <div className="tbm-booking-id">
-                Booking #{booking.booking_id}
-              </div>
-              <div className="tbm-booking-status">
-                {booking.status}
-              </div>
-            </div>
-            
-            <div className="tbm-booking-meta">
-              <div className="tbm-meta-item">
-                <Calendar className="tbm-meta-icon" />
-                <span>{formatDate(booking.booking_date)}</span>
-              </div>
-              <div className="tbm-meta-item">
-                <CreditCard className="tbm-meta-icon" />
-                <span>{formatAmount(booking.total_amount)}</span>
-              </div>
-              <div className="tbm-meta-item">
-                <Users className="tbm-meta-icon" />
-                <span>{booking.passengers.length} Passengers</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="tbm-passengers-section">
-            <div className="tbm-section-title">
-              <Users className="tbm-meta-icon" />
-              Passengers
-            </div>
-            <div className="tbm-passengers-grid">
-              {booking.passengers.map((passenger) => (
-                <div key={passenger.passenger_id} className="tbm-passenger-card">
-                  <div className="tbm-passenger-name">{passenger.full_name}</div>
-                  <div className="tbm-passenger-detail">Age: {passenger.age} years</div>
-                  <div className="tbm-passenger-detail">Gender: {passenger.gender}</div>
-                  <div className="tbm-passenger-detail">Passport: {passenger.passport_number}</div>
+      {bookings.map((booking) => {
+        const isCancelled = booking.status === 'cancelled';
+        const hasFlightCancellations = hasCancelledFlights(booking);
+        
+        return (
+          <div key={booking.booking_id} className={`tbm-booking-card ${isCancelled ? 'cancelled' : ''}`}>
+            <div className={`tbm-booking-header ${isCancelled ? 'cancelled' : ''}`}>
+              {isCancelled && <div className="cancelled-badge">Cancelled</div>}
+              {hasFlightCancellations && !isCancelled && (
+                <div className="flight-cancelled-badge">Flight Changes Required</div>
+              )}
+              <div className="tbm-booking-info">
+                <div className="tbm-booking-id">
+                  Booking #{booking.booking_id}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="tbm-tickets-section">
-            <div className="tbm-tickets-header">
-              <div className="tbm-section-title">
-                <Plane className="tbm-meta-icon" />
-                Flight Tickets
-                <span className="tbm-tickets-count">
-                  {booking.tickets.length} tickets
-                </span>
+                <div className={`tbm-booking-status ${isCancelled ? 'cancelled' : ''}`}>
+                  {booking.status}
+                </div>
               </div>
-              <button 
-                className="tbm-view-tickets-btn"
-                onClick={() => setSelectedTickets(booking.tickets)}
-              >
-                <Plane className="tbm-meta-icon" />
-                View Tickets
-              </button>
+              
+              <div className="tbm-booking-meta">
+                <div className="tbm-meta-item">
+                  <Calendar className="tbm-meta-icon" />
+                  <span>{formatDate(booking.booking_date)}</span>
+                </div>
+                <div className="tbm-meta-item">
+                  <CreditCard className="tbm-meta-icon" />
+                  <span>{formatAmount(booking.total_amount)}</span>
+                </div>
+                <div className="tbm-meta-item">
+                  <Users className="tbm-meta-icon" />
+                  <span>{booking.passengers.length} Passengers</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="tbm-passengers-section">
+              <div className="tbm-section-title">
+                <Users className="tbm-meta-icon" />
+                Passengers
+              </div>
+              <div className="tbm-passengers-grid">
+                {booking.passengers.map((passenger) => (
+                  <div key={passenger.passenger_id} className="tbm-passenger-card">
+                    <div className="tbm-passenger-name">{passenger.full_name}</div>
+                    <div className="tbm-passenger-detail">Age: {passenger.age} years</div>
+                    <div className="tbm-passenger-detail">Gender: {passenger.gender}</div>
+                    <div className="tbm-passenger-detail">Passport: {passenger.passport_number}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="tbm-tickets-section">
+              <div className="tbm-tickets-header">
+                <div className="tbm-section-title">
+                  <Plane className="tbm-meta-icon" />
+                  Flight Tickets
+                  <span className="tbm-tickets-count">
+                    {booking.tickets.length} tickets
+                  </span>
+                </div>
+                <div className="tbm-action-buttons">
+                  <button 
+                    className="tbm-view-tickets-btn"
+                    onClick={() => setSelectedTickets(booking.tickets)}
+                  >
+                    <Plane className="tbm-meta-icon" />
+                    View Tickets
+                  </button>
+                  {hasFlightCancellations && !isCancelled && (
+                    <button 
+                      className="tbm-alter-plan-btn"
+                      onClick={() => handleAlterPlan(booking)}
+                    >
+                      <RefreshCw className="tbm-meta-icon" />
+                      Alter Plan
+                    </button>
+                  )}
+                  {!isCancelled && (
+                    <button 
+                      className="tbm-cancel-btn"
+                      onClick={() => handleCancelBooking(booking)}
+                    >
+                      <X className="tbm-meta-icon" />
+                      Cancel Booking
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {selectedTickets && (
         <FlightTicketDetails 
@@ -1143,6 +1721,13 @@ const TripBookingsList = () => {
           onClose={() => setSelectedTickets(null)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        onClose={closeConfirmationModal}
+        onConfirm={confirmCancellation}
+        booking={confirmationModal.booking}
+      />
     </div>
   );
 };

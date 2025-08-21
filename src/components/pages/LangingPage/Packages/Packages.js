@@ -5,6 +5,7 @@
 // import PackageDetails from "./PackageDetails";
 // import ItineraryView from "./ItineraryView";
 // import "./Packages.css";
+// import { getCookie } from "../../../../utils/SessionUtils";
 
 // const PackageExplorer = ({ searchParams, packageResults }) => {
 //   const [packages, setPackages] = useState([]);
@@ -13,10 +14,18 @@
 //   const [selectedFlight, setSelectedFlight] = useState(null);
 //   const [flightPlan, setFlightPlan] = useState([]);
 //   const [spotSchedule, setSpotSchedule] = useState([]);
+//   const [endFlightOptions, setEndFlightOptions] = useState([]);
+//   const [selectedEndFlight, setSelectedEndFlight] = useState(null);
 //   const [loading, setLoading] = useState(true);
 //   const [flightsLoading, setFlightsLoading] = useState(false);
 //   const [itineraryLoading, setItineraryLoading] = useState(false);
-//   const [currentView, setCurrentView] = useState('packages'); // 'packages', 'details', 'flights', 'itinerary', 'passengers'
+//   const [endFlightsLoading, setEndFlightsLoading] = useState(false);
+//   const [bookingLoading, setBookingLoading] = useState(false);
+//   const [srcToFirstArrivalTime, setSrcToFirstArrivalTime] = useState(null);
+//   const [currentView, setCurrentView] = useState('packages'); // 'packages', 'details', 'flights', 'itinerary', 'endFlights', 'passengers'
+//   const backendUrl = process.env.REACT_APP_TOUR_PACKAGE_BACKEND_URL;
+//   const mailApiKey = process.env.REACT_APP_EMAIL_SERVICE_KEY;
+//   const [flightCharges, setFlightCharges] = useState(null);
 
 //   useEffect(() => {
 //     console.log("PackagesResult: ", packageResults);
@@ -37,9 +46,13 @@
 //     setSelectedPackage(pkg);
 //     setFlightsLoading(true);
 //     setCurrentView('flights');
+//     const formattedDate = searchParams?.date
+//       ? new Date(searchParams?.date).toLocaleDateString('en-CA') // YYYY-MM-DD in local time
+//       : null;
 
 //     try {
-//       const response = await fetch('http://127.0.0.1:8000/trip_package/start_flight_options', {
+//       console.log('Trip package: ',pkg);
+//       const response = await fetch(`${backendUrl}/trip_package/start_flight_options`, {
 //         method: 'POST',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -47,7 +60,7 @@
 //         body: JSON.stringify({
 //           package_id: pkg.package_id,
 //           head_count: searchParams?.headCount || 1,
-//           package_date: searchParams?.date ? searchParams.date.toISOString().split('T')[0] : '2025-07-31',
+//           package_date: formattedDate,
 //           customer_source: searchParams?.source?.name || 'Singapore'
 //         })
 //       });
@@ -77,6 +90,7 @@
 //     // Extract last arrival_time and format it to "YYYY-MM-DD HH:MM"
 //     const lastArrivalRaw = flight.flights[flight.flights.length - 1].arrival_time;
 //     const lastArrivalFormatted = lastArrivalRaw.slice(0, 16); // removes seconds
+//     setSrcToFirstArrivalTime(lastArrivalFormatted);
 
 //     const payload = {
 //       head_count: searchParams.headCount,
@@ -86,7 +100,7 @@
 //     };
 
 //     try {
-//       const response = await fetch("http://localhost:8000/trip_package/generate_flight_plan", {
+//       const response = await fetch(`${backendUrl}/trip_package/generate_flight_plan`, {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -100,16 +114,19 @@
 
 //       const data = await response.json();
 //       console.log("Flight Plan Generated:", data);
-//       await handleEndFlightOptions(data);
       
 //       // Set the flight plan and spot schedule data
 //       setFlightPlan(data.flight_plan || []);
 //       setSpotSchedule(data.spot_schedule || []);
       
+//       // Fetch end flight options
+//       await handleEndFlightOptions(data);
+      
 //     } catch (error) {
 //       console.error("Failed to generate flight plan:", error);
 //       setFlightPlan([]);
 //       setSpotSchedule([]);
+//       setEndFlightOptions([]);
 //     } finally {
 //       setItineraryLoading(false);
 //     }
@@ -131,7 +148,7 @@
 //         customer_destination: searchParams.source.name,
 //       };
 
-//       const response = await fetch("http://localhost:8000/trip_package/end_flight_options", {
+//       const response = await fetch(`${backendUrl}/trip_package/end_flight_options`, {
 //         method: "POST",
 //         headers: { "Content-Type": "application/json" },
 //         body: JSON.stringify(payload),
@@ -143,30 +160,319 @@
 
 //       const data = await response.json();
 //       console.log("End Flight Options:", data);
-//       // Optionally update state here
+//       setEndFlightOptions(data);
 
 //     } catch (error) {
 //       console.error("Error fetching end flight options:", error);
+//       setEndFlightOptions([]);
+//     }
+//   };
+
+//   const handleItineraryConfirm = () => {
+//     // Navigate to end flights selection
+//     setCurrentView('endFlights');
+//   };
+
+//   const handleEndFlightSelect = (flight) => {
+//     setSelectedEndFlight(flight);
+//     console.log("Selected End Flight: ", flight);
+//     // Navigate to passenger details after selecting end flight
+//     setCurrentView('passengers');
+//   };
+
+//   const consolidateAllFlights = () => {
+//     const allFlights = [];
+    
+//     // Add initial flight (from source to first destination)
+//     if (selectedFlight && selectedFlight.flights) {
+//       selectedFlight.flights.forEach(flight => {
+//         allFlights.push({
+//           ...flight,
+//           flight_type: 'initial',
+//           total_price: selectedFlight.total_price,
+//           total_duration_minutes: selectedFlight.total_duration_minutes
+//         });
+//       });
+//     }
+
+//     // Add inter-city flights
+//     if (flightPlan && flightPlan.length > 0) {
+//       flightPlan.forEach(plan => {
+//         allFlights.push({
+//           ...plan.flight,
+//           flight_type: 'inter_city',
+//           source_city_name: plan.source,
+//           destination_city_name: plan.destination,
+//           head_count: plan.head_count
+//         });
+//       });
+//     }
+
+//     // Add return flights
+//     if (selectedEndFlight && selectedEndFlight.flights) {
+//       selectedEndFlight.flights.forEach(flight => {
+//         allFlights.push({
+//           ...flight,
+//           flight_type: 'return',
+//           total_price: selectedEndFlight.total_price,
+//           total_duration_minutes: selectedEndFlight.total_duration_minutes
+//         });
+//       });
+//     }
+
+//     return allFlights;
+//   };
+
+//   function formatDateTime(dateString) {
+//     const date = new Date(dateString);
+//     const year = date.getFullYear();
+//     const month = String(date.getMonth() + 1).padStart(2, '0');
+//     const day = String(date.getDate()).padStart(2, '0');
+//     const hours = String(date.getHours()).padStart(2, '0');
+//     const minutes = String(date.getMinutes()).padStart(2, '0');
+//     return `${year}-${month}-${day} ${hours}:${minutes}`;
+//   }
+
+//   const sendConfirmationMail = async (bookingResult, departureTime, arrivalTime, sourceName) => {
+//     try {
+//       const userEmail = getCookie('userEmail');
+
+//       const mailPayload = {
+//         from: "fliptrip1025@gmail.com",
+//         to: userEmail,
+//         subject: "Booking Confirmation - FlipTrip",
+//         body: `
+//           Dear Customer, 
+
+//           Your package booking (ID: ${bookingResult?.booking_id || "N/A"}) 
+//           has been successfully created. 🎉
+
+//           Package: ${bookingResult?.package?.package_name || "Selected Package"}
+//           Head Count: ${bookingResult?.head_count || 1}
+//           Booking Date: ${departureTime || ""}
+//           Source Location: ${sourceName || ""}
+//           End Date: ${arrivalTime || ""}
+
+//           Thank you for choosing FlipTrip!
+//       `,
+//         attachment: ""
+//       };
+
+//       console.log("[Mail] Sending payload to backend:", mailPayload);
+
+//       const response = await fetch(`${backendUrl}/trip_package/proxy_send_email`, {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           "X-API-KEY": mailApiKey
+//         },
+//         body: JSON.stringify(mailPayload),
+//       });
+
+//       if (response.ok) {
+//         const resData = await response.json();
+//         console.log("[Mail] Confirmation mail sent successfully!", resData);
+//       } else {
+//         const errorData = await response.json();
+//         console.error("[Mail] Failed to send mail:", errorData);
+//       }
+//     } catch (error) {
+//       console.error("[Mail] Unexpected error:", error);
+//     }
+//   };
+
+//   const handleCreateBooking = async (passengers) => {
+//     try {
+//       setBookingLoading(true);
+
+//       const consolidatedFlights = consolidateAllFlights();
+//       const sortedFlights = [...consolidatedFlights].sort(
+//         (a, b) => new Date(a.departure_time) - new Date(b.departure_time)
+//       );
+
+//       let flightCharges = consolidatedFlights.reduce((sum, flight) => sum + flight.base_price, 0);
+//       setFlightCharges(flightCharges);
+
+//       const bookingPayload = {
+//         package_id: selectedPackage?.package_id,
+//         head_count: searchParams?.headCount || 1,
+//         passengers: passengers,
+//         booking_date: formatDateTime(sortedFlights[0].departure_time),
+//         end_date: formatDateTime(sortedFlights[sortedFlights.length - 1].arrival_time),
+//         src_to_first_arrival_time: srcToFirstArrivalTime,
+//         flights: consolidatedFlights,
+//         user_id: parseInt(getCookie('userId')),
+//         flight_total: flightCharges,
+//         source_place: searchParams?.source?.name,
+//       };
+
+//       console.log("Payload for Create_booking's API: ", bookingPayload);
+
+//       const response = await fetch(`${backendUrl}/trip_package/create_booking`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(bookingPayload),
+//       });
+
+//       if (response.ok) {
+//         const bookingResult = await response.json();
+//         console.log('Booking created successfully:', bookingResult);
+
+//         // ✅ Send confirmation mail
+//         await sendConfirmationMail(bookingResult, formatDateTime(sortedFlights[0].departure_time), formatDateTime(sortedFlights[sortedFlights.length - 1].arrival_time), searchParams?.source?.name);
+
+//         // Now start payment redirect
+//         //handlePaymentGateway();
+
+//         return {
+//           success: true,
+//           data: bookingResult,
+//           consolidatedFlights,
+//           bookingPayload,
+//         };
+//       } else {
+//         const errorData = await response.json();
+//         console.error('Booking failed:', errorData);
+
+//         return {
+//           success: false,
+//           error: errorData.message || 'Booking failed. Please try again.',
+//         };
+//       }
+//     } catch (error) {
+//       console.error('Error creating booking:', error);
+
+//       return {
+//         success: false,
+//         error: 'An error occurred while creating your booking. Please try again.',
+//       };
+//     } finally {
+//       setBookingLoading(false);
 //     }
 //   };
 
 
-//   const handleItineraryConfirm = () => {
-//     // Navigate to passenger details after confirming itinerary
-//     setCurrentView('passengers');
-//   };
+//   // const handleCreateBooking = async (passengers) => {
+//   //   try {
+//   //     setBookingLoading(true);
 
-//   const handlePassengerSubmit = (passengers) => {
-//     console.log('Booking Details:', {
-//       package: selectedPackage,
-//       flight: selectedFlight,
-//       flightPlan: flightPlan,
-//       spotSchedule: spotSchedule,
-//       passengers: passengers,
-//       searchParams: searchParams
-//     });
-//     // Here you would typically submit the booking to your API
-//     alert('Booking submitted successfully!');
+//   //     const consolidatedFlights = consolidateAllFlights();
+//   //     console.log("Consolidated Flight: ",consolidatedFlights);
+//   //     const formattedDate = searchParams?.date
+//   //       ? new Date(searchParams?.date).toLocaleDateString('en-CA') // YYYY-MM-DD format
+//   //       : null;
+//   //       console.log("Booking Date: ",formattedDate)
+
+//   //     const sortedFlights = [...consolidatedFlights].sort(
+//   //       (a, b) => new Date(a.departure_time) - new Date(b.departure_time)
+//   //     );
+//   //     let flightCharges = consolidatedFlights.reduce((sum, flight) => sum + flight.base_price, 0);
+//   //     setFlightCharges(flightCharges);
+//   //     const bookingPayload = {
+//   //       package_id: selectedPackage?.package_id,
+//   //       head_count: searchParams?.headCount || 1,
+//   //       passengers: passengers,
+//   //       //booking_date: formattedDate,
+//   //       booking_date: formatDateTime(sortedFlights[0].departure_time),
+//   //       end_date: formatDateTime(sortedFlights[sortedFlights.length - 1].arrival_time),
+//   //       src_to_first_arrival_time: srcToFirstArrivalTime,
+//   //       flights: consolidatedFlights,
+//   //       user_id: parseInt(getCookie('userId')),
+//   //       flight_total: consolidatedFlights.reduce((sum, flight) => sum + flight.base_price, 0),
+//   //       source_place: searchParams?.source?.name,
+//   //     };
+//   //     console.log("Payload for Create_booking's API: ", bookingPayload);
+
+//   //     const response = await fetch(`${backendUrl}/trip_package/create_booking`, {
+//   //       method: 'POST',
+//   //       headers: { 'Content-Type': 'application/json' },
+//   //       body: JSON.stringify(bookingPayload),
+//   //     });
+
+//   //     if (response.ok) {
+//   //       const bookingResult = await response.json();
+//   //       console.log('Booking created successfully:', bookingResult);
+
+//   //       // Now start payment redirect
+//   //       handlePaymentGateway();
+
+//   //       return {
+//   //         success: true,
+//   //         data: bookingResult,
+//   //         consolidatedFlights,
+//   //         bookingPayload,
+//   //       };
+//   //     } else {
+//   //       const errorData = await response.json();
+//   //       console.error('Booking failed:', errorData);
+
+//   //       return {
+//   //         success: false,
+//   //         error: errorData.message || 'Booking failed. Please try again.',
+//   //       };
+//   //     }
+//   //   } catch (error) {
+//   //     console.error('Error creating booking:', error);
+
+//   //     return {
+//   //       success: false,
+//   //       error: 'An error occurred while creating your booking. Please try again.',
+//   //     };
+//   //   } finally {
+//   //     setBookingLoading(false);
+//   //   }
+//   // };
+
+
+//   const handlePassengerSubmit = async (passengersData) => {
+//     // If passengersData contains booking result (from updated PassengerDetails)
+//     if (passengersData.bookingResult) {
+//       console.log('Booking completed:', passengersData);
+//       alert('Booking submitted successfully!');
+//       // Navigate to success page or reset flow
+//       setCurrentView('packages');
+//       return;
+//     }
+
+//     // If it's just passenger data (fallback for compatibility)
+//     const bookingResult = await handleCreateBooking(passengersData);
+    
+//     if (bookingResult.success) {
+//       console.log('Booking Details:', {
+//         package: selectedPackage,
+//         flight: selectedFlight,
+//         flightPlan: flightPlan,
+//         spotSchedule: spotSchedule,
+//         endFlight: selectedEndFlight,
+//         passengers: passengersData,
+//         searchParams: searchParams,
+//         bookingData: bookingResult.data
+//       });
+//       alert('Booking submitted successfully!');
+//       // Navigate to success page or reset flow
+//       setCurrentView('packages');
+//     } else {
+//       alert(bookingResult.error);
+//     }
+//   };
+//   const handlePaymentGateway = (e) => {
+//     //e.preventDefault();
+//     let amount = selectedPackage.price + flightCharges;
+
+//     if (!amount || isNaN(amount)) {
+//       return alert('Enter a valid amount');
+//     }
+
+//     const payload = {
+//       email: 'pranav@gmail.com',
+//       code: 'pranav@paygate',
+//       amount: parseFloat(amount)
+//     };
+
+//     const encoded = encodeURIComponent(btoa(JSON.stringify(payload))); // Base64 + URI encode
+//     const returnUrl = `${window.location.origin}/landing`;
+
+//     window.location.href = `http://192.168.161.133:3000/payment/${encoded}?returnUrl=${encodeURIComponent(returnUrl)}`;
 //   };
 
 //   const handleBack = () => {
@@ -183,9 +489,13 @@
 //         setCurrentView('flights');
 //         setFlightPlan([]);
 //         setSpotSchedule([]);
+//         setEndFlightOptions([]);
+//         break;
+//       case 'endFlights':
+//         setCurrentView('itinerary');
 //         break;
 //       case 'passengers':
-//         setCurrentView('itinerary');
+//         setCurrentView('endFlights');
 //         break;
 //       default:
 //         setCurrentView('packages');
@@ -230,11 +540,29 @@
 //         />
 //       )}
       
+//       {currentView === 'endFlights' && (
+//         <FlightSelection
+//           flights={endFlightOptions}
+//           onFlightSelect={handleEndFlightSelect}
+//           onBack={handleBack}
+//           loading={endFlightsLoading}
+//           title="Select Return Flight"
+//           subtitle="Choose your flight back home"
+//         />
+//       )}
+      
 //       {currentView === 'passengers' && (
 //         <PassengerDetails
 //           headCount={searchParams?.headCount || 1}
 //           onPassengerSubmit={handlePassengerSubmit}
 //           onBack={handleBack}
+//           selectedFlight={selectedFlight}
+//           flightPlan={flightPlan}
+//           selectedEndFlight={selectedEndFlight}
+//           selectedPackage={selectedPackage}
+//           searchParams={searchParams}
+//           onCreateBooking={handleCreateBooking}
+//           bookingLoading={bookingLoading}
 //         />
 //       )}
 //     </div>
@@ -269,6 +597,10 @@ const PackageExplorer = ({ searchParams, packageResults }) => {
   const [srcToFirstArrivalTime, setSrcToFirstArrivalTime] = useState(null);
   const [currentView, setCurrentView] = useState('packages'); // 'packages', 'details', 'flights', 'itinerary', 'endFlights', 'passengers'
   const backendUrl = process.env.REACT_APP_TOUR_PACKAGE_BACKEND_URL;
+  const mailApiKey = process.env.REACT_APP_EMAIL_SERVICE_KEY;
+  const [flightCharges, setFlightCharges] = useState(null);
+  
+  // Remove pendingBookingData state as it's no longer needed here
 
   useEffect(() => {
     console.log("PackagesResult: ", packageResults);
@@ -278,6 +610,8 @@ const PackageExplorer = ({ searchParams, packageResults }) => {
       setLoading(false);
     }, 1000);
   }, [packageResults]);
+
+  // Remove the payment success check functions as they're now in LandingPage
 
   const handlePackageClick = (pkg) => {
     setSelectedPackage(pkg);
@@ -294,6 +628,7 @@ const PackageExplorer = ({ searchParams, packageResults }) => {
       : null;
 
     try {
+      console.log('Trip package: ',pkg);
       const response = await fetch(`${backendUrl}/trip_package/start_flight_options`, {
         method: 'POST',
         headers: {
@@ -473,77 +808,127 @@ const PackageExplorer = ({ searchParams, packageResults }) => {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}`;
-  }
+  };
 
+  const sendConfirmationMail = async (bookingResult, departureTime, arrivalTime, sourceName) => {
+    try {
+      const userEmail = getCookie('userEmail');
+
+      const mailPayload = {
+        from: "fliptrip1025@gmail.com",
+        to: userEmail,
+        subject: "Booking Confirmation - FlipTrip",
+        body: `
+          Dear Customer, 
+
+          Your package booking (ID: ${bookingResult?.booking_id || "N/A"}) 
+          has been successfully created. 🎉
+
+          Package: ${bookingResult?.package?.package_name || "Selected Package"}
+          Head Count: ${bookingResult?.head_count || 1}
+          Booking Date: ${departureTime || ""}
+          Source Location: ${sourceName || ""}
+          End Date: ${arrivalTime || ""}
+
+          Thank you for choosing FlipTrip!
+      `,
+        attachment: ""
+      };
+
+      console.log("[Mail] Sending payload to backend:", mailPayload);
+
+      const response = await fetch(`${backendUrl}/trip_package/proxy_send_email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": mailApiKey
+        },
+        body: JSON.stringify(mailPayload),
+      });
+
+      if (response.ok) {
+        const resData = await response.json();
+        console.log("[Mail] Confirmation mail sent successfully!", resData);
+      } else {
+        const errorData = await response.json();
+        console.error("[Mail] Failed to send mail:", errorData);
+      }
+    } catch (error) {
+      console.error("[Mail] Unexpected error:", error);
+    }
+  };
+
+  // Modified to prepare data for payment instead of creating booking directly
   const handleCreateBooking = async (passengers) => {
     try {
       setBookingLoading(true);
 
       const consolidatedFlights = consolidateAllFlights();
-      console.log("Consolidated Flight: ",consolidatedFlights);
-      const formattedDate = searchParams?.date
-        ? new Date(searchParams?.date).toLocaleDateString('en-CA') // YYYY-MM-DD format
-        : null;
-        console.log("Booking Date: ",formattedDate)
-
       const sortedFlights = [...consolidatedFlights].sort(
         (a, b) => new Date(a.departure_time) - new Date(b.departure_time)
       );
+
+      let flightCharges = consolidatedFlights.reduce((sum, flight) => sum + flight.base_price, 0);
+      setFlightCharges(flightCharges);
 
       const bookingPayload = {
         package_id: selectedPackage?.package_id,
         head_count: searchParams?.headCount || 1,
         passengers: passengers,
-        //booking_date: formattedDate,
         booking_date: formatDateTime(sortedFlights[0].departure_time),
         end_date: formatDateTime(sortedFlights[sortedFlights.length - 1].arrival_time),
         src_to_first_arrival_time: srcToFirstArrivalTime,
         flights: consolidatedFlights,
         user_id: parseInt(getCookie('userId')),
-        flight_total: consolidatedFlights.reduce((sum, flight) => sum + flight.base_price, 0),
+        flight_total: flightCharges,
+        source_place: searchParams?.source?.name,
       };
-      console.log("Payload for Create_booking's API: ", bookingPayload);
 
-      const response = await fetch(`${backendUrl}/trip_package/create_booking`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookingPayload),
-      });
+      console.log("Prepared booking payload for payment:", bookingPayload);
 
-      if (response.ok) {
-        const bookingResult = await response.json();
-        console.log('Booking created successfully:', bookingResult);
-
-        // Now start payment redirect
-        //handlePaymentGateway();
-
-        return {
-          success: true,
-          data: bookingResult,
-          consolidatedFlights,
-          bookingPayload,
-        };
-      } else {
-        const errorData = await response.json();
-        console.error('Booking failed:', errorData);
-
-        return {
-          success: false,
-          error: errorData.message || 'Booking failed. Please try again.',
-        };
-      }
-    } catch (error) {
-      console.error('Error creating booking:', error);
+      // Store booking data in localStorage for after payment
+      localStorage.setItem('pendingBookingData', JSON.stringify(bookingPayload));
+      
+      // Redirect to payment gateway
+      handlePaymentGateway();
 
       return {
+        success: true,
+        message: 'Redirecting to payment gateway...'
+      };
+
+    } catch (error) {
+      console.error('Error preparing booking data:', error);
+      return {
         success: false,
-        error: 'An error occurred while creating your booking. Please try again.',
+        error: 'An error occurred while preparing your booking. Please try again.',
       };
     } finally {
       setBookingLoading(false);
     }
   };
 
+  // Remove the booking creation after payment (now handled in LandingPage)
+
+  const handlePaymentGateway = () => {
+    let amount = selectedPackage.price + flightCharges;
+
+    if (!amount || isNaN(amount)) {
+      return alert('Enter a valid amount');
+    }
+
+    const payload = {
+      email: 'pranav@gmail.com',
+      code: 'pranav@paygate',
+      amount: parseFloat(amount)
+    };
+
+    const encoded = encodeURIComponent(btoa(JSON.stringify(payload))); // Base64 + URI encode
+    // Modified return URL to include payment success indicator and view parameter
+    const returnUrl = `${window.location.origin}/landing?paymentSuccess=true&view=bookings`;
+
+    window.location.href = `http://192.168.161.133:3000/payment/${encoded}?returnUrl=${encodeURIComponent(returnUrl)}`;
+  };
 
   const handlePassengerSubmit = async (passengersData) => {
     // If passengersData contains booking result (from updated PassengerDetails)
@@ -555,45 +940,13 @@ const PackageExplorer = ({ searchParams, packageResults }) => {
       return;
     }
 
-    // If it's just passenger data (fallback for compatibility)
+    // Prepare booking data and redirect to payment
     const bookingResult = await handleCreateBooking(passengersData);
     
-    if (bookingResult.success) {
-      console.log('Booking Details:', {
-        package: selectedPackage,
-        flight: selectedFlight,
-        flightPlan: flightPlan,
-        spotSchedule: spotSchedule,
-        endFlight: selectedEndFlight,
-        passengers: passengersData,
-        searchParams: searchParams,
-        bookingData: bookingResult.data
-      });
-      alert('Booking submitted successfully!');
-      // Navigate to success page or reset flow
-      setCurrentView('packages');
-    } else {
+    if (!bookingResult.success) {
       alert(bookingResult.error);
     }
-  };
-  const handlePaymentGateway = (e) => {
-    //e.preventDefault();
-    let amount = 1000;
-
-    if (!amount || isNaN(amount)) {
-      return alert('Enter a valid amount');
-    }
-
-    const payload = {
-      email: 'thabitha@gmail.com',
-      code: 'thabitha@paygate',
-      amount: parseFloat(amount)
-    };
-
-    const encoded = encodeURIComponent(btoa(JSON.stringify(payload))); // Base64 + URI encode
-    const returnUrl = `${window.location.origin}/payment-result`;
-
-    window.location.href = `http://172.22.150.21:3001/payment/${encoded}?returnUrl=${encodeURIComponent(returnUrl)}`;
+    // If successful, user will be redirected to payment gateway
   };
 
   const handleBack = () => {
